@@ -1,0 +1,104 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn import metrics
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.neighbors import KNeighborsClassifier
+
+df = pd.read_csv("C:/Users/shiva/Downloads/Iris.csv")
+
+
+
+print(df)
+#information of data
+print(df.info())
+#Statistical summary
+print(df.describe())
+print(df.head())
+print(df.tail())
+
+print(df.columns)
+#no fo unique values in each column
+print(df.nunique())
+
+df.drop('Id', axis = 1, inplace = True)
+print(df)
+
+print(df.isnull().sum())
+
+#Count plot
+sns.countplot(x='Species', data=df, palette="viridis")
+plt.title("Species Distribution")
+plt.show()
+
+#Box plot
+
+sns.boxplot(x='Species', y='SepalLengthCm',data=df, palette="viridis") #boxplot
+plt.title("Boxplot of Sepal length by Species")
+plt.show()
+
+#violin plot
+sns.violinplot(x='Species', y='PetalLengthCm', data=df, palette="viridis")
+plt.title("Violin Plot of Petal Length by Species")
+plt.show()
+
+#distribution plot
+sns.displot(df['PetalWidthCm'], bins=30, kde=True) 
+plt.title("Distribution Plot of Sepal Length")
+plt.show()
+
+#Histogram
+sns.histplot(data=df,x='SepalWidthCm',bins=20,kde=True)
+plt.title("Histogram")
+plt.show()
+
+#Heatmap
+numerical_data = df.select_dtypes(include=['number'])
+correlation = numerical_data.corr()
+
+sns.heatmap(correlation,annot=True, cmap='coolwarm', fmt=".2f")
+plt.title("Correlation Matrix of Numerical Features")
+plt.show()
+
+label_encoder = LabelEncoder()
+df['species'] = label_encoder.fit_transform(df['Species'])
+
+for i, class_label in enumerate(label_encoder.classes_):
+    print(f"{i} → {class_label}")
+    
+X = df.drop(labels=["Species", "species"], axis=1)
+y = df["species"]
+print(y.value_counts())
+print(X.columns)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = KNeighborsClassifier(n_neighbors=3)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+
+accuracy_scores = []
+
+for k in range(1, 20):
+    model = KNeighborsClassifier(n_neighbors=k)
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+    accuracy_scores.append(acc)
+
+# Plot accuracy vs k
+import matplotlib.pyplot as plt
+plt.plot(range(1, 20), accuracy_scores, marker='o')
+plt.title("KNN Accuracy for Different k Values")
+plt.xlabel("Number of Neighbors (k)")
+plt.ylabel("Accuracy")
+plt.show()
